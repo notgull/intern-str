@@ -16,6 +16,9 @@ pub mod builder;
 #[cfg(feature = "builder")]
 extern crate alloc;
 
+#[cfg(feature = "std")]
+extern crate std;
+
 #[cfg(feature = "builder")]
 use alloc::vec::Vec;
 
@@ -133,6 +136,14 @@ impl<'nodes, 'inst, Input: Segmentable, Output> Graph<'inst, 'nodes, Input, Outp
 pub trait Segmentable: Ord + Sized {
     /// Split the item into two parts.
     fn split(self, at: usize) -> Option<(Self, Self)>;
+
+    /// Get the length of the item.
+    fn len(&self) -> usize;
+
+    /// Tell if the item is empty.
+    fn is_empty(&self) -> bool {
+        self.len() == 0
+    }
 }
 
 impl<'a> Segmentable for &'a str {
@@ -144,6 +155,10 @@ impl<'a> Segmentable for &'a str {
         let (left, right) = self.split_at(at);
         Some((left, right))
     }
+
+    fn len(&self) -> usize {
+        str::len(self)
+    }
 }
 
 impl<'a, T: Ord> Segmentable for &'a [T] {
@@ -154,6 +169,10 @@ impl<'a, T: Ord> Segmentable for &'a [T] {
 
         let (left, right) = self.split_at(at);
         Some((left, right))
+    }
+
+    fn len(&self) -> usize {
+        <[T]>::len(self)
     }
 }
 
@@ -233,6 +252,10 @@ impl<T: AsRef<[u8]>> hash::Hash for CaseInsensitive<T> {
 impl<T: Segmentable + AsRef<[u8]>> Segmentable for CaseInsensitive<T> {
     fn split(self, at: usize) -> Option<(Self, Self)> {
         T::split(self.0, at).map(|(left, right)| (left.into(), right.into()))
+    }
+
+    fn len(&self) -> usize {
+        T::len(&self.0)
     }
 }
 

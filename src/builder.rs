@@ -3,8 +3,7 @@
 //! This builder is not meant to be used in library code. Therefore, it is not thread-safe,
 //! and uses an allocator.
 
-#[cfg(feature = "std")]
-extern crate std;
+use super::Segmentable;
 
 use alloc::string::{String, ToString};
 use alloc::vec;
@@ -143,7 +142,7 @@ impl<'a, T, Type: GraphType<'a>> Builder<T, Type> {
 
         // Recursively sort node children.
         for node in &mut self.nodes {
-            node.sort();
+            node.normalize();
         }
 
         // Add a "default" node at position zero.
@@ -165,12 +164,14 @@ impl<'a, T, Type: GraphType<'a>> Builder<T, Type> {
             })
             .collect::<Vec<_>>();
 
+        let amount = initial_indices.first().map_or(1, |(key, _)| key.len());
+
         // Create a root node.
         let root = super::Node {
             inputs: crate::MaybeSlice::Vec(initial_indices),
             output: None,
             default: 0,
-            amount: core::usize::MAX, // TODO: broken in every way,
+            amount,
         };
         node_buffer.push(root);
 
@@ -195,14 +196,45 @@ struct Node<T> {
 }
 
 impl<T: Clone> Node<T> {
-    /// Sort this node's children.
-    fn sort(&mut self) {
+    /// Sort this node's children and ensure all of its strings are the same length.
+    fn normalize(&mut self) {
+        // Determine what the length of the shortest value is.
+        let shortest = self
+            .children
+            .iter()
+            .map(|child| child.value.len())
+            .min()
+            .unwrap_or(0);
+
+        // Shorten each value to the shortest length.
+        for child in &mut self.children {
+            child.shorten(shortest);
+        }
+
         // Sort the children.
         self.children.sort_by(|a, b| a.value.cmp(&b.value));
 
         // Do the same for all children.
         for child in &mut self.children {
-            child.sort();
+            child.normalize();
+        }
+    }
+
+    /// Try to shortern this node to be less than the given length.
+    fn shorten(&mut self, len: usize) {
+        if self.value.len() > len {
+            // Get the chunk that we need to split off.
+            let new_value = self.value.split_off(len);
+
+            // Create a new node with our output and children.
+            let new_node = Node {
+                value: new_value,
+                output: self.output.take(),
+                children: mem::take(&mut self.children),
+            };
+
+            // Add the new node as a child.
+            self.children.push(new_node);
         }
     }
 
@@ -224,13 +256,15 @@ impl<T: Clone> Node<T> {
             })
             .collect::<Vec<_>>();
 
+        let amount = child_indices.first().map_or(1, |(key, _)| key.len());
+
         // Now, add our node.
         let node_index = nodes.len();
         nodes.push(super::Node {
             inputs: crate::MaybeSlice::Vec(child_indices),
             output: self.output.clone(),
             default: 0,
-            amount: self.value.len(),
+            amount,
         });
 
         node_index
@@ -283,11 +317,6 @@ impl<'a> GraphType<'a> for AsciiGraph {
     }
 }
 
-mod __private {
-    #[doc(hidden)]
-    pub trait Sealed {}
-}
-
 /// An error that occurs when building a graph.
 #[derive(Debug)]
 pub enum AddError<T> {
@@ -335,4 +364,9 @@ fn prefix<'a>(a: &'a str, b: &str) -> &'a str {
     }
 
     &a[..i]
+}
+
+mod __private {
+    #[doc(hidden)]
+    pub trait Sealed {}
 }
