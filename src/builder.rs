@@ -129,8 +129,8 @@ impl<'a, T, Type: GraphType<'a>> Builder<T, Type> {
     /// Build the graph.
     pub fn build<'nodes>(
         &'a mut self,
-        node_buffer: &'nodes mut Vec<super::Node<'static, Type::InputKey, Option<T>>>,
-    ) -> super::Graph<'static, 'nodes, Type::InputKey, Option<T>>
+        node_buffer: &'nodes mut Vec<super::Node<'a, Type::InputKey, Option<T>>>,
+    ) -> super::Graph<'a, 'nodes, Type::InputKey, Option<T>>
     where
         T: Clone,
     {
@@ -138,6 +138,7 @@ impl<'a, T, Type: GraphType<'a>> Builder<T, Type> {
         node_buffer.clear();
 
         // Sort our children.
+        shorten_children(&mut self.nodes);
         self.nodes.sort_unstable_by(|a, b| a.value.cmp(&b.value));
 
         // Recursively sort node children.
@@ -198,18 +199,7 @@ struct Node<T> {
 impl<T: Clone> Node<T> {
     /// Sort this node's children and ensure all of its strings are the same length.
     fn normalize(&mut self) {
-        // Determine what the length of the shortest value is.
-        let shortest = self
-            .children
-            .iter()
-            .map(|child| child.value.len())
-            .min()
-            .unwrap_or(0);
-
-        // Shorten each value to the shortest length.
-        for child in &mut self.children {
-            child.shorten(shortest);
-        }
+        shorten_children(&mut self.children);
 
         // Sort the children.
         self.children.sort_by(|a, b| a.value.cmp(&b.value));
@@ -243,7 +233,7 @@ impl<T: Clone> Node<T> {
     /// Returns the index of the node in the graph.
     fn build<'a, 'nodes, Type: GraphType<'a>>(
         &'a self,
-        nodes: &'nodes mut Vec<super::Node<'static, Type::InputKey, Option<T>>>,
+        nodes: &'nodes mut Vec<super::Node<'a, Type::InputKey, Option<T>>>,
     ) -> usize {
         // Build each child.
         let child_indices = self
@@ -268,6 +258,20 @@ impl<T: Clone> Node<T> {
         });
 
         node_index
+    }
+}
+
+fn shorten_children<T: Clone>(children: &mut [Node<T>]) {
+    // Determine what the length of the shortest value is.
+    let shortest = children
+        .iter()
+        .map(|child| child.value.len())
+        .min()
+        .unwrap_or(0);
+
+    // Shorten each value to the shortest length.
+    for child in children {
+        child.shorten(shortest);
     }
 }
 

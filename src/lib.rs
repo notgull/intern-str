@@ -80,11 +80,11 @@ impl<'inst, Input: Segmentable, Output> Node<'inst, Input, Output> {
     }
 
     /// Get the inputs of this node.
-    pub fn inputs(&self) -> &'inst [(Input, usize)] {
+    pub fn inputs(&self) -> &[(Input, usize)] {
         match &self.inputs {
             MaybeSlice::Slice(s) => s,
             #[cfg(feature = "builder")]
-            MaybeSlice::Vec(_) => panic!("Cannot get reference to inputs"),
+            MaybeSlice::Vec(v) => v,
         }
     }
 
@@ -108,6 +108,16 @@ impl<'nodes, 'inst, Input: Segmentable, Output> Graph<'inst, 'nodes, Input, Outp
     /// Create a new graph from a set of nodes.
     pub const fn new(nodes: &'nodes [Node<'inst, Input, Output>], start: usize) -> Self {
         Self { nodes, start }
+    }
+
+    /// Get the nodes of this graph.
+    pub fn nodes(&self) -> &'nodes [Node<'inst, Input, Output>] {
+        self.nodes
+    }
+
+    /// Get the start node index.
+    pub fn start(&self) -> usize {
+        self.start
     }
 
     /// Process the input and return the output.

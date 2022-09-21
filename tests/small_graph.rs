@@ -84,4 +84,13 @@ fn builder() {
 
     // Test the graph.
     assert_eq!(*graph.process("Red"), Some(Color::Red));
+    assert_eq!(*graph.process("Gray"), Some(Color::Gray));
+    assert_eq!(*graph.process("Green"), Some(Color::Green));
+    assert_eq!(*graph.process("Black"), Some(Color::Black));
+    assert_eq!(*graph.process("Blue"), Some(Color::Blue));
+    assert_eq!(*graph.process("Beige"), Some(Color::Beige));
+    assert_eq!(*graph.process("Redish"), None);
+    assert_eq!(*graph.process("Re"), None);
+    assert_eq!(*graph.process(""), None);
+    assert_eq!(*graph.process("Indigo"), None);
 }
