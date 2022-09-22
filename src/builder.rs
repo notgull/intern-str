@@ -34,12 +34,12 @@ impl<'a, T, Type: GraphType<'a>> Builder<T, Type> {
     }
 
     /// Add a key/value pair to the map.
-    pub fn add(&mut self, key: String, value: T) -> Result<(), AddError<T>> {
+    pub fn add(&mut self, mut key: String, value: T) -> Result<(), AddError<T>> {
         if key.is_empty() {
             return Err(AddError::Empty(value));
         }
 
-        if !Type::validate(&key) {
+        if !Type::validate(&mut key) {
             return Err(AddError::Invalid(key, value));
         }
 
@@ -281,7 +281,7 @@ pub trait GraphType<'a>: Sealed {
     type InputKey: super::Segmentable;
 
     /// Validate the input.
-    fn validate(input: &str) -> bool;
+    fn validate(input: &mut str) -> bool;
 
     /// Convert the input into a key.
     fn key(input: &'a str) -> Self::InputKey;
@@ -295,7 +295,7 @@ impl Sealed for Utf8Graph {}
 impl<'a> GraphType<'a> for Utf8Graph {
     type InputKey = &'a str;
 
-    fn validate(_: &str) -> bool {
+    fn validate(_: &mut str) -> bool {
         true
     }
 
@@ -312,7 +312,7 @@ impl Sealed for AsciiGraph {}
 impl<'a> GraphType<'a> for AsciiGraph {
     type InputKey = &'a [u8];
 
-    fn validate(input: &str) -> bool {
+    fn validate(input: &mut str) -> bool {
         input.is_ascii()
     }
 
