@@ -2,6 +2,13 @@
 name = "intern-str"
 version = "0.1.0"
 edition = "2018"
+authors = ["John Nunley <jtnunley01@gmail.com>"]
+description = "Efficient, compile-time string interning for Rust"
+repository = "https://github.com/notgull/intern-str"
+license = "MIT OR Apache-2.0"
+keywords = ["string", "interning", "compile-time"]
+homepage = "https://github.com/notgull/intern-str#readme"
+documentation = "https://docs.rs/intern-str"
 
 [[bench]]
 name = "comparison"
@@ -13,9 +20,13 @@ std = []
 
 [workspace]
 members = [
+    "codegen",
+    "generate_phf_map",
     "visualize"
 ]
 
 [dev-dependencies]
 criterion = "0.4.0"
 fastrand = "1.8.0"
+phf = "0.11.1"
+intern-str-codegen = { path = "codegen" }

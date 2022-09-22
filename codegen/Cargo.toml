@@ -1,0 +1,14 @@
+[package]
+name = "intern-str-codegen"
+version = "0.1.0"
+edition = "2018"
+authors = ["John Nunley <jtnunley01@gmail.com>"]
+description = "Generate intern-str graphs at compile time"
+repository = "https://github.com/notgull/intern-str"
+license = "MIT OR Apache-2.0"
+keywords = ["string", "interning", "compile-time"]
+homepage = "https://github.com/notgull/intern-str/tree/master/intern-str-codegen#readme"
+documentation = "https://docs.rs/intern-str-codegen"
+
+[dependencies]
+intern-str = { path = ".." }

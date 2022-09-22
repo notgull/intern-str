@@ -61,8 +61,5 @@ fn words_list() {
     );
 
     // The word "sfdlkjafldksakdfls" should not be in the graph.
-    assert_eq!(
-        *graph.process(CaseInsensitive("sfdlkjafldksakdfls")),
-        None
-    );
+    assert_eq!(*graph.process(CaseInsensitive("sfdlkjafldksakdfls")), None);
 }
