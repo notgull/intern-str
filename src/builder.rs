@@ -321,6 +321,27 @@ impl<'a> GraphType<'a> for AsciiGraph {
     }
 }
 
+/// A graph that ignores case for another graph.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, Default)]
+pub struct IgnoreCase<Graph>(core::marker::PhantomData<Graph>);
+
+impl<G: Sealed> Sealed for IgnoreCase<G> {}
+impl<'a, G: GraphType<'a>> GraphType<'a> for IgnoreCase<G>
+where
+    G::InputKey: AsRef<[u8]>,
+{
+    type InputKey = super::CaseInsensitive<G::InputKey>;
+
+    fn validate(input: &mut str) -> bool {
+        input.make_ascii_lowercase();
+        G::validate(input)
+    }
+
+    fn key(input: &'a str) -> Self::InputKey {
+        super::CaseInsensitive(G::key(input))
+    }
+}
+
 /// An error that occurs when building a graph.
 #[derive(Debug)]
 pub enum AddError<T> {

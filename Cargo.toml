@@ -3,6 +3,10 @@ name = "intern-str"
 version = "0.1.0"
 edition = "2018"
 
+[[bench]]
+name = "comparison"
+harness = false
+
 [features]
 builder = []
 std = []
@@ -11,3 +15,7 @@ std = []
 members = [
     "visualize"
 ]
+
+[dev-dependencies]
+criterion = "0.4.0"
+fastrand = "1.8.0"
