@@ -18,6 +18,10 @@ The main advantage of this approach is that it can be used to create case-insens
 
 [`phf`]: https://crates.io/crates/phf
 
+## MSRV
+
+The current Minimum Safe Rust Version (MSRV) is Rust 1.31.0. Any change in the MSRV will lead to a minor version bump at minimum.
+
 ## License
 
 `intern_str` is licensed under one of the following:

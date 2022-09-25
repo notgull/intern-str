@@ -12,8 +12,6 @@ use alloc::vec::Vec;
 use core::marker::PhantomData;
 use core::{fmt, mem};
 
-use __private::Sealed;
-
 /// A builder for graphs.
 #[derive(Debug, Default)]
 pub struct Builder<T, Type> {
@@ -217,10 +215,12 @@ impl<T: Clone> Node<T> {
             let new_value = self.value.split_off(len);
 
             // Create a new node with our output and children.
+            // We use mem::replace here to support a lower MSRV.
             let new_node = Node {
                 value: new_value,
                 output: self.output.take(),
-                children: mem::take(&mut self.children),
+                #[allow(clippy::mem_replace_with_default)]
+                children: mem::replace(&mut self.children, vec![]),
             };
 
             // Add the new node as a child.
@@ -276,9 +276,9 @@ fn shorten_children<T: Clone>(children: &mut [Node<T>]) {
 }
 
 /// The type that a graph can have.
-pub trait GraphType<'a>: Sealed {
+pub trait GraphType<'a> {
     /// The type of the input key.
-    type InputKey: super::Segmentable;
+    type InputKey: super::Segmentable + 'a;
 
     /// Validate the input.
     fn validate(input: &mut str) -> bool;
@@ -291,7 +291,6 @@ pub trait GraphType<'a>: Sealed {
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, Default)]
 pub struct Utf8Graph;
 
-impl Sealed for Utf8Graph {}
 impl<'a> GraphType<'a> for Utf8Graph {
     type InputKey = &'a str;
 
@@ -308,7 +307,6 @@ impl<'a> GraphType<'a> for Utf8Graph {
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, Default)]
 pub struct AsciiGraph;
 
-impl Sealed for AsciiGraph {}
 impl<'a> GraphType<'a> for AsciiGraph {
     type InputKey = &'a [u8];
 
@@ -325,7 +323,6 @@ impl<'a> GraphType<'a> for AsciiGraph {
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, Default)]
 pub struct IgnoreCase<Graph>(core::marker::PhantomData<Graph>);
 
-impl<G: Sealed> Sealed for IgnoreCase<G> {}
 impl<'a, G: GraphType<'a>> GraphType<'a> for IgnoreCase<G>
 where
     G::InputKey: AsRef<[u8]>,
@@ -358,13 +355,13 @@ pub enum AddError<T> {
 impl<T: fmt::Display> fmt::Display for AddError<T> {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
-            Self::Empty(value) => write!(f, "Cannot add an empty key to the graph: {}", value),
-            Self::Invalid(key, value) => write!(
+            AddError::Empty(value) => write!(f, "Cannot add an empty key to the graph: {}", value),
+            AddError::Invalid(key, value) => write!(
                 f,
                 "Cannot add an invalid key to the graph: {} ({})",
                 key, value
             ),
-            Self::Duplicate(key, value) => write!(
+            AddError::Duplicate(key, value) => write!(
                 f,
                 "Cannot add a duplicate key to the graph: {} ({})",
                 key, value
@@ -389,9 +386,4 @@ fn prefix<'a>(a: &'a str, b: &str) -> &'a str {
     }
 
     &a[..i]
-}
-
-mod __private {
-    #[doc(hidden)]
-    pub trait Sealed {}
 }

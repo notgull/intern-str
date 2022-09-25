@@ -30,3 +30,6 @@ criterion = "0.4.0"
 fastrand = "1.8.0"
 phf = "0.11.1"
 intern-str-codegen = { path = "codegen" }
+
+[build-dependencies]
+autocfg = "1.1.0"

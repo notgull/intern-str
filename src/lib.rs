@@ -55,8 +55,10 @@
 #[cfg(feature = "builder")]
 pub mod builder;
 
-#[cfg(feature = "builder")]
+#[cfg(all(feature = "builder", not(intern_str_no_alloc)))]
 extern crate alloc;
+#[cfg(all(feature = "builder", intern_str_no_alloc))]
+extern crate std as alloc;
 
 #[cfg(feature = "std")]
 extern crate std;
@@ -96,7 +98,7 @@ pub struct Graph<'inst, 'nodes, Input, Output> {
     start: usize,
 }
 
-impl<'inst, Input: Segmentable, Output> Node<'inst, Input, Output> {
+impl<'inst, Input, Output> Node<'inst, Input, Output> {
     /// Create a new node from its parts.
     pub const fn new(
         inputs: &'inst [(Input, usize)],
@@ -111,7 +113,9 @@ impl<'inst, Input: Segmentable, Output> Node<'inst, Input, Output> {
             amount,
         }
     }
+}
 
+impl<'inst, Input: Segmentable, Output> Node<'inst, Input, Output> {
     /// Determine the next index to go to based on the input.
     fn next(&self, input: &Input) -> usize {
         // Use a binary search, since the input is sorted.
@@ -146,12 +150,14 @@ impl<'inst, Input: Segmentable, Output> Node<'inst, Input, Output> {
     }
 }
 
-impl<'nodes, 'inst, Input: Segmentable, Output> Graph<'inst, 'nodes, Input, Output> {
+impl<'nodes, 'inst, Input, Output> Graph<'inst, 'nodes, Input, Output> {
     /// Create a new graph from a set of nodes.
     pub const fn new(nodes: &'nodes [Node<'inst, Input, Output>], start: usize) -> Self {
         Self { nodes, start }
     }
+}
 
+impl<'nodes, 'inst, Input: Segmentable, Output> Graph<'inst, 'nodes, Input, Output> {
     /// Get the nodes of this graph.
     pub fn nodes(&self) -> &'nodes [Node<'inst, Input, Output>] {
         self.nodes
@@ -250,7 +256,7 @@ impl<T> ops::DerefMut for CaseInsensitive<T> {
 
 impl<T> From<T> for CaseInsensitive<T> {
     fn from(value: T) -> Self {
-        Self(value)
+        CaseInsensitive(value)
     }
 }
 
@@ -323,9 +329,9 @@ impl<'a, T> core::ops::Deref for MaybeSlice<'a, T> {
 
     fn deref(&self) -> &Self::Target {
         match self {
-            Self::Slice(slice) => slice,
+            MaybeSlice::Slice(slice) => slice,
             #[cfg(feature = "builder")]
-            Self::Vec(vec) => vec,
+            MaybeSlice::Vec(vec) => vec,
         }
     }
 }

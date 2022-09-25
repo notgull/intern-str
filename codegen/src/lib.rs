@@ -96,7 +96,7 @@ pub fn generate<Input: Key, Output>(
 
         write!(out, "{}", Indent(12)).ok();
         write_output(&mut out, node.output()).ok();
-        writeln!(out).ok();
+        writeln!(out, ",").ok();
 
         writeln!(out, "{}{},", Indent(12), node.default(),).ok();
 
