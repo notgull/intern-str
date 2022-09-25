@@ -5,7 +5,11 @@ fn main() {
     let rustc = match autocfg::AutoCfg::new() {
         Ok(rustc) => rustc,
         Err(e) => {
-            println!("cargo:warning={}: unable to determine version: {}", env!("CARGO_PKG_NAME"), e);
+            println!(
+                "cargo:warning={}: unable to determine version: {}",
+                env!("CARGO_PKG_NAME"),
+                e
+            );
             return;
         }
     };
@@ -17,5 +21,5 @@ fn main() {
     // alloc stabilized in Rust 1.36 (nightly-2019-04-15)
     if !rustc.probe_rustc_version(1, 36) {
         println!("cargo:rustc-cfg=intern_str_no_alloc");
-    } 
+    }
 }

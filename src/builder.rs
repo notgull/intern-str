@@ -209,6 +209,7 @@ impl<T: Clone> Node<T> {
     }
 
     /// Try to shortern this node to be less than the given length.
+    #[allow(clippy::mem_replace_with_default)]
     fn shorten(&mut self, len: usize) {
         if self.value.len() > len {
             // Get the chunk that we need to split off.
@@ -218,8 +219,7 @@ impl<T: Clone> Node<T> {
             // We use mem::replace here to support a lower MSRV.
             let new_node = Node {
                 value: new_value,
-                output: self.output.take(),
-                #[allow(clippy::mem_replace_with_default)]
+                output: self.output.take(), 
                 children: mem::replace(&mut self.children, vec![]),
             };
 
