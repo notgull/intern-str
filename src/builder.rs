@@ -219,7 +219,7 @@ impl<T: Clone> Node<T> {
             // We use mem::replace here to support a lower MSRV.
             let new_node = Node {
                 value: new_value,
-                output: self.output.take(), 
+                output: self.output.take(),
                 children: mem::replace(&mut self.children, vec![]),
             };
 
