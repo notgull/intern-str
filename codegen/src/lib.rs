@@ -89,7 +89,14 @@ pub fn generate<Input: Key, Output>(
         writeln!(out, "{}&[", Indent(12)).ok();
 
         for (input, next) in node.inputs() {
-            writeln!(out, "{}({}, {}),", Indent(16), WriteKey(input), next,).ok();
+            writeln!(
+                out,
+                "{}({}, {}),",
+                Indent(16),
+                WriteKey(input),
+                Index(*next),
+            )
+            .ok();
         }
 
         writeln!(out, "{}],", Indent(12)).ok();
@@ -98,7 +105,7 @@ pub fn generate<Input: Key, Output>(
         write_output(&mut out, node.output()).ok();
         writeln!(out, ",").ok();
 
-        writeln!(out, "{}{},", Indent(12), node.default(),).ok();
+        writeln!(out, "{}{},", Indent(12), Index(node.default()),).ok();
 
         writeln!(out, "{}{},", Indent(12), node.amount(),).ok();
 
@@ -175,5 +182,17 @@ impl fmt::Display for Indent {
         }
 
         Ok(())
+    }
+}
+
+struct Index(usize);
+
+impl fmt::Display for Index {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        if self.0 == core::usize::MAX {
+            f.write_str("core::usize::MAX")
+        } else {
+            fmt::Display::fmt(&self.0, f)
+        }
     }
 }
