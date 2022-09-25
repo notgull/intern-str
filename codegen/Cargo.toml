@@ -11,4 +11,4 @@ homepage = "https://github.com/notgull/intern-str/tree/master/intern-str-codegen
 documentation = "https://docs.rs/intern-str-codegen"
 
 [dependencies]
-intern-str = { path = ".." }
+intern-str = { version = "0.1" }
