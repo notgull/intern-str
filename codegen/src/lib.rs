@@ -94,7 +94,7 @@ pub fn generate<Input: Key, Output>(
                 "{}({}, {}),",
                 Indent(16),
                 WriteKey(input),
-                Index(*next),
+                next
             )
             .ok();
         }
@@ -105,9 +105,9 @@ pub fn generate<Input: Key, Output>(
         write_output(&mut out, node.output()).ok();
         writeln!(out, ",").ok();
 
-        writeln!(out, "{}{},", Indent(12), Index(node.default()),).ok();
+        writeln!(out, "{}{},", Indent(12), node.default(),).ok();
 
-        writeln!(out, "{}{},", Indent(12), node.amount(),).ok();
+        writeln!(out, "{}{},", Indent(12), Index(node.amount()),).ok();
 
         writeln!(out, "{}),", Indent(8)).ok();
     }
